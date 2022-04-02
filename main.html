@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <canvas id="blow_fly" width="400px" height="400px"></canvas>
+  <script>
+    // 取得畫布
+    let blowFlyCanvas = document.querySelector('#blow_fly');
+    let blowFlyCtx = blowFlyCanvas.getContext('2d');
+    // 畫布加上人物圖片
+    var peopleImg = addImage("people.jpg");
+    // 設定隨機蒼蠅圖片X座標
+    var flyX = Math.floor(Math.random() * 400);
+    // 設定隨機蒼蠅圖片Y座標
+    var flyY = Math.floor(Math.random() * 400);
+    // 畫布加上蒼蠅圖片
+    var flyImg = addImage("fly.png");
+
+    function addImage(fileName, posX, posY) {
+      var img = new Image();
+      img.onload = function () {
+        blowFlyCtx.drawImage(img, posX, posY);
+      };
+      img.src = fileName;
+      return img
+    }
+
+    let context = null; // 音頻上下文
+    let source = null; // 音頻源
+    let audioStream = null; // 錄音產生的音頻流
+    let analyserNode = null; // 用於分析音頻實時數據的節點
+    let animationFrame = null; // 定時器
+    const handleMic = (stream) => {
+      audioStream = stream;
+      // 創建音頻上下文
+      context = new (window.AudioContext || window.webkitAudioContext)();
+      // 創建音頻源
+      source = context.createMediaStreamSource(audioStream);
+      // 創建音頻分析節點
+      analyserNode = context.createAnalyser();
+      // fftSize決定了能夠獲取到的音頻數據的數量
+      analyserNode.fftSize = 4096;
+      // 音頻源連接至analyserNode
+      source.connect(analyserNode);
+      animationFrame = setInterval(draw, 60);
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(handleMic);
+
+    // 繪製圖形
+    function draw() {
+      const originData = new Float32Array(analyserNode.fftSize);
+      const maxValues = [];
+      // 獲取當前的實時音頻數據
+      analyserNode.getFloatTimeDomainData(originData);
+      // 每12位數據取一個最大值一個最小值 4096 / 12 = 341.3333
+      for (let i = 0; i < 341; i++) {
+        let temp = originData.slice(i * 12, (i + 1) * 12);
+        let maxValue = Math.max.apply(null, temp);
+        maxValues.push(maxValue);
+      }
+      // 清除畫布
+      blowFlyCtx.clearRect(0, 0, blowFlyCanvas.width, blowFlyCanvas.height);
+      // 重新繪製圖片位置
+      blowFlyCtx.drawImage(peopleImg, 0, 0);
+      blowFlyCtx.drawImage(flyImg, flyX, flyY);
+      // 設定蒼蠅圖片新座標值
+      flyX -= maxValues.reduce((a, b) => a + b);
+      flyY -= maxValues.reduce((a, b) => a + b);
+    }
+  </script>
+</body>
+</html>
