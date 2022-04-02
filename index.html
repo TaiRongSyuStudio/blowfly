@@ -2,19 +2,22 @@
 <html>
 
 <body>
-  <canvas id="blow_fly" width="400px" height="400px">您的瀏覽器不支援canvas</canvas>
+  <canvas id="blow_fly">您的瀏覽器不支援canvas</canvas>
   <script>
     // 取得畫布
     let blowFlyCanvas = document.querySelector('#blow_fly');
+    blowFlyCanvas.width = window.innerWidth;
+    blowFlyCanvas.height = window.innerHeight;
+
     let blowFlyCtx = blowFlyCanvas.getContext('2d');
     // 畫布加上人物圖片
-    var peopleImg = addImage("people.jpg");
+    var peopleImg = addImage("people.jpg", 0, 0);
     // 設定隨機蒼蠅圖片X座標
     var flyX = Math.floor(Math.random() * 400);
     // 設定隨機蒼蠅圖片Y座標
     var flyY = Math.floor(Math.random() * 400);
     // 畫布加上蒼蠅圖片
-    var flyImg = addImage("fly.png");
+    var flyImg = addImage("fly.png", flyX, flyY);
 
     function addImage(fileName, posX, posY) {
       var img = new Image();
